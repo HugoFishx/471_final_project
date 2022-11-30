@@ -79,6 +79,7 @@ __global__ void tiled_forward_kernel(float *y, const float *x, const float *k, c
     int col_i = col_o - edge;
 
     if(b < B) {
+        float output = 0;
         for(int c = 0; c < C; c++) { // sum over all input features
 
             // Load shared memory
@@ -90,7 +91,6 @@ __global__ void tiled_forward_kernel(float *y, const float *x, const float *k, c
             __syncthreads();
 
             // Calculate convolution
-            float output = 0;
             if(ty < TILE_WIDTH && tx < TILE_WIDTH) { // Only a fraction of thread will participate in calculation
                 for(int i = 0; i < K; i++) {
                     for(int j = 0; j < K; j++) {
@@ -98,13 +98,15 @@ __global__ void tiled_forward_kernel(float *y, const float *x, const float *k, c
                     }
                 }
             }
-
-            // Only inner part. Output tile is smaller
-            if(row_o >= edge && row_o < H - edge && col_o >= edge && col_o < W - edge) {
-                y4d(b, m, row_o - edge, col_o - edge) = output;
-            }
             __syncthreads();
         }
+
+        // Only inner part. Output tile is smaller
+        if(row_o >= edge && row_o < H - edge && col_o >= edge && col_o < W - edge) {
+            y4d(b, m, row_o - edge, col_o - edge) = output;
+        }
+        __syncthreads();
+
     }
 
 
