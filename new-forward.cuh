@@ -5,11 +5,21 @@
 #include <mxnet/base.h>
 
 #define TILE_WIDTH 16
+#define MAX_CONSTANT_MEM 0x9999
+
+#define y4d(i3, i2, i1, i0) y[(i3) * (M * H_out * W_out) + (i2) * (H_out * W_out) + (i1) * (W_out) + i0]
+#define x4d(i3, i2, i1, i0) x[(i3) * (C * H * W) + (i2) * (H * W) + (i1) * (W) + i0]
+#define k4d(i3, i2, i1, i0) k[(i3) * (C * K * K) + (i2) * (K * K) + (i1) * (K) + i0]
+#define w4d(i3, i2, i1, i0) weight_const[(i3) * (C * K * K) + (i2) * (K * K) + (i1) * (K) + i0]
+
 
 namespace mxnet
 {
 namespace op
 {
+
+
+__constant__ float weight_const [MAX_CONSTANT_MEM / sizeof(float)];
 
 __global__ void forward_kernel(float *y, const float *x, const float *k, const int B, const int M, const int C, const int H, const int W, const int K)
 {
@@ -30,9 +40,6 @@ __global__ void forward_kernel(float *y, const float *x, const float *k, const i
 // An example use of these macros:
 // float a = y4d(0,0,0,0)
 // y4d(0,0,0,0) = a
-#define y4d(i3, i2, i1, i0) y[(i3) * (M * H_out * W_out) + (i2) * (H_out * W_out) + (i1) * (W_out) + i0]
-#define x4d(i3, i2, i1, i0) x[(i3) * (C * H * W) + (i2) * (H * W) + (i1) * (W) + i0]
-#define k4d(i3, i2, i1, i0) k[(i3) * (C * K * K) + (i2) * (K * K) + (i1) * (K) + i0]
 
     int b = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -50,17 +57,10 @@ __global__ void forward_kernel(float *y, const float *x, const float *k, const i
                 }
     }
 
-#undef y4d
-#undef x4d
-#undef k4d
 }
 
 __global__ void tiled_forward_kernel(float *y, const float *x, const float *k, const int B, const int M, const int C, const int H, const int W, const int K, int W_grid)
 {
-    #define y4d(i3, i2, i1, i0) y[(i3) * (M * H_out * W_out) + (i2) * (H_out * W_out) + (i1) * (W_out) + i0]
-    #define x4d(i3, i2, i1, i0) x[(i3) * (C * H * W) + (i2) * (H * W) + (i1) * (W) + i0]
-    #define k4d(i3, i2, i1, i0) k[(i3) * (C * K * K) + (i2) * (K * K) + (i1) * (K) + i0]
-
     extern __shared__ float shared[];
     const int H_out = H - K + 1;
     const int W_out = W - K + 1;
@@ -94,7 +94,7 @@ __global__ void tiled_forward_kernel(float *y, const float *x, const float *k, c
             if(ty < TILE_WIDTH && tx < TILE_WIDTH) { // Only a fraction of thread will participate in calculation
                 for(int i = 0; i < K; i++) {
                     for(int j = 0; j < K; j++) {
-                        output += shared[(i + ty) * (TILE_WIDTH+K-1) + tx + j] * k4d(m, c, i, j);
+                        output += shared[(i + ty) * (TILE_WIDTH+K-1) + tx + j] * w4d(m, c, i, j);
                     }
                 }
             }
@@ -109,10 +109,6 @@ __global__ void tiled_forward_kernel(float *y, const float *x, const float *k, c
 
     }
 
-
-    #undef y4d
-    #undef x4d
-    #undef k4d
 }
 
 /* 
@@ -143,6 +139,7 @@ void forward<gpu, float>(mshadow::Tensor<gpu, 4, float> &y, const mshadow::Tenso
     // MSHADOW_CUDA_CALL(cudaDeviceSynchronize());
 
     // from chapter 16
+    int b = B;
     int H_out = H - K + 1;
     int W_out = W - K + 1;
     int W_grid = ceil(W/(float)TILE_WIDTH); // number of horizontal tiles per output map
@@ -151,6 +148,7 @@ void forward<gpu, float>(mshadow::Tensor<gpu, 4, float> &y, const mshadow::Tenso
     dim3 blockDim(TILE_WIDTH + K - 1, TILE_WIDTH + K - 1, 1);
     dim3 gridDim(B, M, Z);
     size_t shmem_size = sizeof(float) * ( (TILE_WIDTH + K - 1) * (TILE_WIDTH + K - 1) );
+    cudaMemcpyToSymbol(weight_const, w.dptr_,  M * C * K * K * sizeof(float));
     MSHADOW_CUDA_CALL(cudaDeviceSynchronize());
     tiled_forward_kernel<<<gridDim, blockDim, shmem_size>>>(y.dptr_, x.dptr_, w.dptr_, B, M, C, H, W, K, W_grid);
     MSHADOW_CUDA_CALL(cudaDeviceSynchronize());
@@ -167,5 +165,10 @@ void forward(mshadow::Tensor<gpu, 4, DType> &y, const mshadow::Tensor<gpu, 4, DT
 }
 }
 }
+
+#undef y4d
+#undef x4d
+#undef k4d
+#undef w4d
 
 #endif
