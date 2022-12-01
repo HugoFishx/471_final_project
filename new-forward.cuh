@@ -5,7 +5,7 @@
 #include <mxnet/base.h>
 
 #define TILE_WIDTH 16
-#define MAX_CONSTANT_MEM 0x9999
+#define MAX_CONSTANT_MEM 64000
 
 #define y4d(i3, i2, i1, i0) y[(i3) * (M * H_out * W_out) + (i2) * (H_out * W_out) + (i1) * (W_out) + i0]
 #define x4d(i3, i2, i1, i0) x[(i3) * (C * H * W) + (i2) * (H * W) + (i1) * (W) + i0]
