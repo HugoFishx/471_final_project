@@ -19,7 +19,7 @@ namespace op
 {
 
 
-__constant__ float weight_const [MAX_CONSTANT_MEM / sizeof(float)];
+__constant__ float weight_const[MAX_CONSTANT_MEM / sizeof(float)];
 
 __global__ void forward_kernel(float *y, const float *x, const float *k, const int B, const int M, const int C, const int H, const int W, const int K)
 {
@@ -37,9 +37,9 @@ __global__ void forward_kernel(float *y, const float *x, const float *k, const i
     (void)H_out; // silence declared but never referenced warning. remove this line when you start working
     (void)W_out; // silence declared but never referenced warning. remove this line when you start working
 
-// An example use of these macros:
-// float a = y4d(0,0,0,0)
-// y4d(0,0,0,0) = a
+    // An example use of these macros:
+    // float a = y4d(0,0,0,0)
+    // y4d(0,0,0,0) = a
 
     int b = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -92,10 +92,297 @@ __global__ void tiled_forward_kernel(float *y, const float *x, const float *k, c
 
             // Calculate convolution
             if(ty < TILE_WIDTH && tx < TILE_WIDTH) { // Only a fraction of thread will participate in calculation
-                for(int i = 0; i < K; i++) {
-                    for(int j = 0; j < K; j++) {
+                if(K == 5) {
+                    output += 
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 0, 0) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 0, 1) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 0, 2) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 0, 3) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 0, 4) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 1, 0) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 1, 1) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 1, 2) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 1, 3) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 1, 4) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 2, 0) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 2, 1) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 2, 2) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 2, 3) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 2, 4) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 3, 0) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 3, 1) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 3, 2) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 3, 3) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 3, 4) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 4, 0) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 4, 1) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 4, 2) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 4, 3) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 4, 4);
+                } else if (K == 7) {
+                    output += 
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 0, 0) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 0, 1) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 0, 2) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 0, 3) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 0, 4) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 0, 5) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 0, 6) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 1, 0) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 1, 1) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 1, 2) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 1, 3) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 1, 4) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 1, 5) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 1, 6) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 2, 0) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 2, 1) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 2, 2) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 2, 3) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 2, 4) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 2, 5) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 2, 6) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 3, 0) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 3, 1) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 3, 2) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 3, 3) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 3, 4) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 3, 5) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 3, 6) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 4, 0) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 4, 1) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 4, 2) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 4, 3) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 4, 4) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 4, 5) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 4, 6) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 5, 0) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 5, 1) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 5, 2) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 5, 3) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 5, 4) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 5, 5) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 5, 6) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 6, 0) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 6, 1) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 6, 2) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 6, 3) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 6, 4) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 6, 5) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 6, 6);
+                } else if (K == 9) {
+                    output +=
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 0, 0) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 0, 1) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 0, 2) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 0, 3) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 0, 4) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 0, 5) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 0, 6) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 0, 7) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 0, 8) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 1, 0) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 1, 1) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 1, 2) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 1, 3) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 1, 4) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 1, 5) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 1, 6) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 1, 7) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 1, 8) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 2, 0) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 2, 1) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 2, 2) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 2, 3) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 2, 4) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 2, 5) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 2, 6) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 2, 7) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 2, 8) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 3, 0) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 3, 1) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 3, 2) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 3, 3) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 3, 4) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 3, 5) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 3, 6) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 3, 7) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 3, 8) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 4, 0) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 4, 1) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 4, 2) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 4, 3) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 4, 4) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 4, 5) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 4, 6) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 4, 7) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 4, 8) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 5, 0) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 5, 1) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 5, 2) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 5, 3) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 5, 4) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 5, 5) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 5, 6) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 5, 7) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 5, 8) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 6, 0) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 6, 1) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 6, 2) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 6, 3) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 6, 4) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 6, 5) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 6, 6) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 6, 7) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 6, 8) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 7, 0) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 7, 1) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 7, 2) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 7, 3) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 7, 4) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 7, 5) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 7, 6) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 7, 7) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 7, 8) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 8, 0) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 8, 1) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 8, 2) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 8, 3) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 8, 4) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 8, 5) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 8, 6) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 8, 7) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 8, 8);
+                } else if (K == 11) {
+                    output +=
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 0, 0) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 0, 1) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 0, 2) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 0, 3) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 0, 4) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 0, 5) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 0, 6) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 0, 7) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 0, 8) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 0, 9) +
+                        shared[(0 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 0, 10) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 1, 0) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 1, 1) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 1, 2) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 1, 3) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 1, 4) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 1, 5) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 1, 6) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 1, 7) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 1, 8) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 1, 9) +
+                        shared[(1 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 1, 10) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 2, 0) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 2, 1) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 2, 2) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 2, 3) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 2, 4) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 2, 5) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 2, 6) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 2, 7) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 2, 8) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 2, 9) +
+                        shared[(2 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 2, 10) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 3, 0) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 3, 1) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 3, 2) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 3, 3) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 3, 4) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 3, 5) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 3, 6) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 3, 7) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 3, 8) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 3, 9) +
+                        shared[(3 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 3, 10) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 4, 0) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 4, 1) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 4, 2) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 4, 3) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 4, 4) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 4, 5) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 4, 6) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 4, 7) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 4, 8) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 4, 9) +
+                        shared[(4 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 4, 10) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 5, 0) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 5, 1) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 5, 2) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 5, 3) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 5, 4) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 5, 5) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 5, 6) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 5, 7) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 5, 8) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 5, 9) +
+                        shared[(5 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 5, 10) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 6, 0) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 6, 1) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 6, 2) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 6, 3) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 6, 4) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 6, 5) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 6, 6) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 6, 7) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 6, 8) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 6, 9) +
+                        shared[(6 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 6, 10) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 7, 0) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 7, 1) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 7, 2) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 7, 3) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 7, 4) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 7, 5) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 7, 6) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 7, 7) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 7, 8) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 7, 9) +
+                        shared[(7 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 7, 10) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 8, 0) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 8, 1) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 8, 2) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 8, 3) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 8, 4) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 8, 5) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 8, 6) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 8, 7) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 8, 8) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 8, 9) +
+                        shared[(8 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 8, 10) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 9, 0) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 9, 1) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 9, 2) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 9, 3) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 9, 4) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 9, 5) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 9, 6) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 9, 7) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 9, 8) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 9, 9) +
+                        shared[(9 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 9, 10) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 0] * w4d(m, c, 10, 0) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 1] * w4d(m, c, 10, 1) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 2] * w4d(m, c, 10, 2) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 3] * w4d(m, c, 10, 3) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 4] * w4d(m, c, 10, 4) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 5] * w4d(m, c, 10, 5) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 6] * w4d(m, c, 10, 6) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 7] * w4d(m, c, 10, 7) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 8] * w4d(m, c, 10, 8) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 9] * w4d(m, c, 10, 9) +
+                        shared[(10 + ty) * (TILE_WIDTH+K-1) + tx + 10] * w4d(m, c, 10, 10);
+                } else {
+                    for(int i = 0; i < K; i++) {
+                        for(int j = 0; j < K; j++) {
                         output += shared[(i + ty) * (TILE_WIDTH+K-1) + tx + j] * w4d(m, c, i, j);
+                        }
                     }
+
                 }
             }
             __syncthreads();
@@ -105,7 +392,6 @@ __global__ void tiled_forward_kernel(float *y, const float *x, const float *k, c
         if(row_o >= edge && row_o < H - edge && col_o >= edge && col_o < W - edge) {
             y4d(b, m, row_o - edge, col_o - edge) = output;
         }
-        __syncthreads();
 
     }
 
